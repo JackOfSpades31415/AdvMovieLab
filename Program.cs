@@ -3,38 +3,58 @@ string path = Directory.GetCurrentDirectory() + "\\nlog.config";
 var logger = LogManager.LoadConfiguration(path).GetCurrentClassLogger();
 logger.Info("Start!");
 
-Movie movie = new Movie
-{
-    mediaId = 123,
-    title = "Greatest Movie Ever, The (2023)",
-     director = "Jeff Grissom",
-    runningTime = new TimeSpan(2, 21, 23), //hours, minutes, seconds
-    genres = { "Comedy", "Romance" }
-};
+Console.WriteLine("Enter 1 to add movie.");
+Console.WriteLine("Enter 2 to list movies.");
+Console.WriteLine("Enter anything else to quit.");
 
-Console.WriteLine(movie.Display());
+String prompt = Console.ReadLine();
+if (prompt == "1"){
 
-Album album = new Album
-{
-    mediaId = 321,
-    title = "Greatest Album Ever, The (2020)",
-    artist = "Jeff's Awesome Band",
-    recordLabel = "Universal Music Group",
-    genres = { "Rock" }
-};
-Console.WriteLine(album.Display());
+    StreamWriter sw = new StreamWriter("movies.csv", true);
+    Console.WriteLine("movie ID?");
+    int movieID = 0;
+    if (!int.TryParse(Console.ReadLine(), out movieID)){
+        throw new Exception("Input Invalid.");
+    }
+    Console.WriteLine("Name of movie?");
+    String movieName = Console.ReadLine();
+    bool genreAsk = true;
+    List<String> genres = new List<String>();
+    char moreGenre;
+    while(genreAsk){
+        Console.WriteLine("What genre?");
+        genres.Add(Console.ReadLine());
+        Console.WriteLine("Another Genre? Y/N");
+        if (!Char.TryParse(Console.ReadLine(), out moreGenre)){
+        throw new Exception("Input Invalid.");
+    }
+            if(moreGenre == 'n'){
+                genreAsk = false;
+            }
+            else if(moreGenre != 'y' || moreGenre != 'n'){
+                logger.Error("Invalid input.");
+            }
+    }
+    Console.WriteLine("Whose the Director?");
+    String movieDirector = Console.ReadLine();
+    Console.WriteLine("Enter the runtime (h:m:s)");
+    String movieTime = Console.ReadLine();
+    sw.WriteLine($"{movieID},{movieName},{movieDirector},{movieTime},{string.Join("|", genres)}"); 
+    sw.Close();
+}
+else if(prompt == "2"){
+         if(System.IO.File.Exists("movies.csv")){
+        StreamReader sr = new StreamReader("movies.csv");
+        while(!sr.EndOfStream){
+            Console.WriteLine(sr.ReadLine());
+        }
+         }
 
-Book book = new Book
-{
-    mediaId = 111,
-    title = "Super Cool Book",
-    author = "Jeff Grissom",
-    pageCount = 101,
-    publisher = "",
-    genres = { "Suspense", "Mystery" }
-};
-Console.WriteLine(book.Display());
+}
 
+string scrubbedFile = FileScrubber.ScrubMovies("movies.csv");
+logger.Info(scrubbedFile);
+MovieFile movieFile = new MovieFile(scrubbedFile);
 
 
 logger.Info("End!");
